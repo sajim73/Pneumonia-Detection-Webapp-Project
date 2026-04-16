@@ -20,6 +20,10 @@ def allowed_file(filename: str) -> bool:
     )
 
 
+def can_access_scan(user, scan: Scan) -> bool:
+    return user.role == "admin" or scan.user_id == user.id
+
+
 def scan_to_response(scan: Scan):
     data = scan.to_dict()
     data["image_url"] = url_for(
@@ -36,6 +40,11 @@ def scan_to_response(scan: Scan):
         url_for("serve_heatmap_file", filename=scan.overlay_filename, _external=True)
         if scan.overlay_filename
         else None
+    )
+    data["report_url"] = url_for(
+        "report.download_scan_report",
+        scan_id=scan.id,
+        _external=True,
     )
     return data
 
@@ -102,6 +111,7 @@ def upload_scan():
                 "model_version": prediction["model_version"],
                 "preprocess_mode": prediction["preprocess_mode"],
                 "gradcam_layer": gradcam["gradcam_layer"],
+                "disclaimer": current_app.config["DISCLAIMER_TEXT"],
             },
             "files": {
                 "image_url": url_for(
@@ -133,18 +143,12 @@ def upload_scan():
                 os.remove(upload_path)
             except Exception:
                 pass
-
-        return jsonify(
-            {
-                "error": "Scan processing failed",
-                "details": str(exc),
-            }
-        ), 500
+        return jsonify({"error": f"Failed to process scan: {str(exc)}"}), 500
 
 
 @scan_bp.route("/history", methods=["GET"])
 @login_required
-def get_history():
+def get_scan_history():
     scans = (
         Scan.query.filter_by(user_id=g.current_user.id, saved_to_history=True)
         .order_by(Scan.created_at.desc())
@@ -161,43 +165,13 @@ def get_history():
 
 @scan_bp.route("/<int:scan_id>", methods=["GET"])
 @login_required
-def get_scan(scan_id):
-    scan = Scan.query.get_or_404(scan_id)
+def get_scan_detail(scan_id):
+    scan = Scan.query.get(scan_id)
 
-    if g.current_user.role != "admin" and scan.user_id != g.current_user.id:
-        return jsonify({"error": "Access denied"}), 403
+    if not scan:
+        return jsonify({"error": "Scan not found"}), 404
+
+    if not can_access_scan(g.current_user, scan):
+        return jsonify({"error": "You do not have access to this scan"}), 403
 
     return jsonify({"scan": scan_to_response(scan)}), 200
-
-
-@scan_bp.route("/<int:scan_id>", methods=["DELETE"])
-@login_required
-def delete_scan(scan_id):
-    scan = Scan.query.get_or_404(scan_id)
-
-    if g.current_user.role != "admin" and scan.user_id != g.current_user.id:
-        return jsonify({"error": "Access denied"}), 403
-
-    upload_path = os.path.join(current_app.config["UPLOAD_FOLDER"], scan.stored_image_filename)
-    heatmap_path = (
-        os.path.join(current_app.config["HEATMAP_FOLDER"], scan.heatmap_filename)
-        if scan.heatmap_filename
-        else None
-    )
-    overlay_path = (
-        os.path.join(current_app.config["HEATMAP_FOLDER"], scan.overlay_filename)
-        if scan.overlay_filename
-        else None
-    )
-
-    db.session.delete(scan)
-    db.session.commit()
-
-    for path in [upload_path, heatmap_path, overlay_path]:
-        if path and os.path.exists(path):
-            try:
-                os.remove(path)
-            except Exception:
-                pass
-
-    return jsonify({"message": "Scan deleted successfully"}), 200               
