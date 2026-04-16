@@ -49,9 +49,9 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/admin/users" element={<AdminUsers />} />
-        <Route path="/admin/scans" element={<AdminScans />} />
+        <Route path="/admin/scans" element={<AdminScansPage />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/login" replace />} />
