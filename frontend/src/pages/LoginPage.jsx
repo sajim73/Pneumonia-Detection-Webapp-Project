@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import api from "../api/axios";
+import useAuth from "../hooks/useAuth";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -10,8 +11,8 @@ export default function LoginPage() {
     email: "",
     password: ""
   });
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setForm((prev) => ({
@@ -22,14 +23,15 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
+    setError("");
 
     try {
-      const data = await login(form);
+      const { data } = await api.post("/auth/login", form);
+      login(data.token, data.user);
 
-      if (data.user.role === "admin") {
-        navigate("/admin/dashboard");
+      if (data.user?.role === "admin") {
+        navigate("/admin");
       } else {
         navigate("/dashboard");
       }
@@ -41,58 +43,49 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="container-page py-10">
-      <div className="mx-auto max-w-md card p-8">
-        <h2 className="page-title text-center">Login</h2>
-        <p className="page-subtitle text-center">
-          Login as patient or admin to continue.
-        </p>
+    <div className="card p-8">
+      <h2 className="page-title">Login</h2>
+      <p className="page-subtitle">Sign in to access the screening platform.</p>
 
-        {error && (
-          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <div>
-            <label className="label">Email</label>
-            <input
-              type="email"
-              name="email"
-              className="input"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-              required
-            />
-          </div>
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <div>
+          <label className="label">Email</label>
+          <input
+            className="input"
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-          <div>
-            <label className="label">Password</label>
-            <input
-              type="password"
-              name="password"
-              className="input"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
-              required
-            />
-          </div>
+        <div>
+          <label className="label">Password</label>
+          <input
+            className="input"
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-          <button type="submit" className="btn-primary w-full" disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+        <button type="submit" className="btn-primary w-full" disabled={loading}>
+          {loading ? "Signing in..." : "Login"}
+        </button>
+      </form>
 
-        <p className="mt-6 text-center text-sm text-slate-600">
-          Don&apos;t have an account?{" "}
-          <Link to="/register" className="font-semibold text-teal-700 hover:underline">
-            Register here
-          </Link>
-        </p>
-      </div>
+      <p className="mt-5 text-sm text-slate-600">
+        Don&apos;t have an account? <Link to="/register" className="text-teal-700 font-semibold">Register</Link>
+      </p>
     </div>
   );
 }
