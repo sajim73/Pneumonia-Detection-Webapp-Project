@@ -1,15 +1,268 @@
-﻿@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "./theme.css";
+@import "./utilities.css";
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
 
 body {
-  @apply bg-gray-50 text-gray-900 font-sans;
+  min-height: 100vh;
 }
 
-.btn-primary {
-  @apply bg-primary text-white px-4 py-2 rounded-lg hover:opacity-90 transition;
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-.input {
-  @apply w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary;
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-inner {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.brand-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--primary);
+  color: white;
+  font-size: 0.9rem;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.nav-link {
+  padding: 0.6rem 0.85rem;
+  border-radius: 10px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.nav-link.active,
+.nav-link:hover {
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-chip {
+  display: flex;
+  flex-direction: column;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: white;
+}
+
+.user-chip-block {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.user-name {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.user-role {
+  font-size: 0.82rem;
+  text-transform: capitalize;
+  color: var(--muted);
+}
+
+.app-main {
+  padding-bottom: 2rem;
+}
+
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+}
+
+.auth-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.auth-panel-left {
+  background: linear-gradient(135deg, #0f766e 0%, #134e4a 100%);
+  color: white;
+}
+
+.auth-panel-right {
+  background: var(--bg);
+}
+
+.auth-copy {
+  max-width: 560px;
+}
+
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.hero-title {
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  line-height: 1.05;
+  margin: 0;
+}
+
+.hero-text {
+  margin-top: 1rem;
+  font-size: 1.05rem;
+  line-height: 1.75;
+  max-width: 55ch;
+}
+
+.auth-note {
+  margin-top: 1.25rem;
+  display: inline-flex;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  font-weight: 600;
+}
+
+.auth-card-wrap {
+  width: 100%;
+  max-width: 480px;
+}
+
+.admin-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+}
+
+.admin-sidebar {
+  border-right: 1px solid var(--border);
+  background: white;
+  padding: 1.5rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand-sidebar {
+  margin-bottom: 2rem;
+}
+
+.sidebar-nav {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.sidebar-link {
+  padding: 0.8rem 0.95rem;
+  border-radius: 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.sidebar-link.active,
+.sidebar-link:hover {
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
+.sidebar-footer {
+  margin-top: 2rem;
+}
+
+.admin-main {
+  background: var(--bg);
+}
+
+@media (max-width: 1024px) {
+  .auth-shell,
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar {
+    position: static;
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-inner,
+  .header-actions,
+  .main-nav {
+    flex-wrap: wrap;
+  }
+
+  .main-nav {
+    width: 100%;
+  }
+
+  .auth-panel-left {
+    display: none;
+  }
 }
