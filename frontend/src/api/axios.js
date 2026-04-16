@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:5000",
-  withCredentials: false
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://shiny-orbit-qjpv9v6v7wgf4wr5-5000.app.github.dev",
+  withCredentials: false,
 });
 
 api.interceptors.request.use((config) => {
