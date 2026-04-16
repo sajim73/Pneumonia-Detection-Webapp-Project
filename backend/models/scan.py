@@ -7,7 +7,12 @@ class Scan(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False,
+        index=True,
+    )
 
     original_filename = db.Column(db.String(255), nullable=False)
     stored_image_filename = db.Column(db.String(255), nullable=False)
@@ -27,7 +32,10 @@ class Scan(db.Model):
     status = db.Column(db.String(30), nullable=False, default="completed")
 
     created_at = db.Column(
-        db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
     )
 
     def to_dict(self):
