@@ -1,5 +1,4 @@
 from flask import Blueprint, request, jsonify
-from werkzeug.security import generate_password_hash, check_password_hash
 from extensions import db
 from models.user import User
 from utils.auth_helpers import create_access_token
@@ -31,7 +30,7 @@ def register():
         email=email,
         role=role,
     )
-    user.password_hash = generate_password_hash(password)
+    user.set_password(password)
 
     db.session.add(user)
     db.session.commit()
@@ -62,7 +61,7 @@ def login():
 
     user = User.query.filter_by(email=email).first()
 
-    if not user or not check_password_hash(user.password_hash, password):
+    if not user or not user.check_password(password):
         return jsonify({"error": "Invalid credentials"}), 401
 
     token = create_access_token(user)
