@@ -83,7 +83,7 @@ export default function Dashboard() {
             {history.slice(0, 4).map((scan) => (
               <Link
                 key={scan.id}
-                to={`/scans/${scan.id}`}
+                to={`/scan/${scan.id}`}
                 className="block rounded-lg border border-slate-200 p-3 hover:bg-slate-50"
               >
                 <div className="flex items-center justify-between gap-3">
