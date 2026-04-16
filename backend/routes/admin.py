@@ -1,49 +1,74 @@
-﻿from flask import Blueprint, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from models.user import User
+from flask import Blueprint, jsonify, request
+
 from models.scan import Scan
+from models.user import User
+from utils.auth_helpers import admin_required
 
-admin_bp = Blueprint("admin", __name__)
-
-
-def is_admin(identity):
-    return identity.get("role") == "admin"
+admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 
 @admin_bp.route("/users", methods=["GET"])
-@jwt_required()
-def list_users():
-    identity = get_jwt_identity()
-    if not is_admin(identity):
-        return jsonify({"error": "Forbidden"}), 403
+@admin_required
+def get_all_users():
+    users = User.query.order_by(User.created_at.desc()).all()
 
-    users = User.query.all()
-    return jsonify([
+    return jsonify(
         {
-            "id": u.id,
-            "username": u.username,
-            "email": u.email,
-            "role": u.role,
+            "count": len(users),
+            "users": [user.to_dict() for user in users],
         }
-        for u in users
-    ])
+    ), 200
 
 
 @admin_bp.route("/scans", methods=["GET"])
-@jwt_required()
-def list_scans():
-    identity = get_jwt_identity()
-    if not is_admin(identity):
-        return jsonify({"error": "Forbidden"}), 403
+@admin_required
+def get_all_scans():
+    label = (request.args.get("label") or "").strip()
+    user_id = request.args.get("user_id", type=int)
 
-    scans = Scan.query.order_by(Scan.created_at.desc()).all()
-    return jsonify([
+    query = Scan.query
+
+    if label:
+        query = query.filter(Scan.predicted_label == label)
+
+    if user_id:
+        query = query.filter(Scan.user_id == user_id)
+
+    scans = query.order_by(Scan.created_at.desc()).all()
+
+    scan_items = []
+    for scan in scans:
+        item = scan.to_dict()
+        item["user"] = {
+            "id": scan.user.id,
+            "name": scan.user.name,
+            "email": scan.user.email,
+            "role": scan.user.role,
+        } if scan.user else None
+        scan_items.append(item)
+
+    return jsonify(
         {
-            "id": s.id,
-            "user_id": s.user_id,
-            "prediction": s.prediction,
-            "confidence": s.confidence,
-            "created_at": s.created_at.isoformat(),
+            "count": len(scan_items),
+            "scans": scan_items,
         }
-        for s in scans
-    ])
+    ), 200
+
+
+@admin_bp.route("/scans/<int:scan_id>", methods=["GET"])
+@admin_required
+def get_admin_scan_detail(scan_id):
+    scan = Scan.query.get(scan_id)
+
+    if not scan:
+        return jsonify({"error": "Scan not found"}), 404
+
+    item = scan.to_dict()
+    item["user"] = {
+        "id": scan.user.id,
+        "name": scan.user.name,
+        "email": scan.user.email,
+        "role": scan.user.role,
+    } if scan.user else None
+
+    return jsonify({"scan": item}), 200
