@@ -67,8 +67,10 @@ def _apply_preprocess(batch: np.ndarray, mode: str) -> np.ndarray:
 
     if mode == "rescale_255":
         return batch / 255.0
+
     if mode == "densenet":
         return tf.keras.applications.densenet.preprocess_input(batch)
+
     if mode == "mobilenet_v2":
         return tf.keras.applications.mobilenet_v2.preprocess_input(batch)
 
