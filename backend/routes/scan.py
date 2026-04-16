@@ -119,4 +119,85 @@ def upload_scan():
                     filename=gradcam["overlay_filename"],
                     _external=True,
                 ),
-           
+            },
+        }
+
+        if scan_record:
+            response["scan"] = scan_to_response(scan_record)
+
+        return jsonify(response), 201
+
+    except Exception as exc:
+        if os.path.exists(upload_path):
+            try:
+                os.remove(upload_path)
+            except Exception:
+                pass
+
+        return jsonify(
+            {
+                "error": "Scan processing failed",
+                "details": str(exc),
+            }
+        ), 500
+
+
+@scan_bp.route("/history", methods=["GET"])
+@login_required
+def get_history():
+    scans = (
+        Scan.query.filter_by(user_id=g.current_user.id, saved_to_history=True)
+        .order_by(Scan.created_at.desc())
+        .all()
+    )
+
+    return jsonify(
+        {
+            "count": len(scans),
+            "scans": [scan_to_response(scan) for scan in scans],
+        }
+    ), 200
+
+
+@scan_bp.route("/<int:scan_id>", methods=["GET"])
+@login_required
+def get_scan(scan_id):
+    scan = Scan.query.get_or_404(scan_id)
+
+    if g.current_user.role != "admin" and scan.user_id != g.current_user.id:
+        return jsonify({"error": "Access denied"}), 403
+
+    return jsonify({"scan": scan_to_response(scan)}), 200
+
+
+@scan_bp.route("/<int:scan_id>", methods=["DELETE"])
+@login_required
+def delete_scan(scan_id):
+    scan = Scan.query.get_or_404(scan_id)
+
+    if g.current_user.role != "admin" and scan.user_id != g.current_user.id:
+        return jsonify({"error": "Access denied"}), 403
+
+    upload_path = os.path.join(current_app.config["UPLOAD_FOLDER"], scan.stored_image_filename)
+    heatmap_path = (
+        os.path.join(current_app.config["HEATMAP_FOLDER"], scan.heatmap_filename)
+        if scan.heatmap_filename
+        else None
+    )
+    overlay_path = (
+        os.path.join(current_app.config["HEATMAP_FOLDER"], scan.overlay_filename)
+        if scan.overlay_filename
+        else None
+    )
+
+    db.session.delete(scan)
+    db.session.commit()
+
+    for path in [upload_path, heatmap_path, overlay_path]:
+        if path and os.path.exists(path):
+            try:
+                os.remove(path)
+            except Exception:
+                pass
+
+    return jsonify({"message": "Scan deleted successfully"}), 200               
