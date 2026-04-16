@@ -1,85 +1,100 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
+const TOKEN_KEY = "pneumo_token";
+const USER_KEY = "pneumo_user";
+
+function safeParse(value) {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+export default function AuthProvider({ children }) {
+  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || "");
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("user");
-    return saved ? JSON.parse(saved) : null;
+    const stored = localStorage.getItem(USER_KEY);
+    return stored ? safeParse(stored) : null;
   });
-  const [token, setToken] = useState(() => localStorage.getItem("token") || null);
-  const [loading, setLoading] = useState(true);
+  const [bootstrapping, setBootstrapping] = useState(true);
 
-  const persistAuth = (nextToken, nextUser) => {
-    localStorage.setItem("token", nextToken);
-    localStorage.setItem("user", JSON.stringify(nextUser));
-    setToken(nextToken);
-    setUser(nextUser);
-  };
+  const persistAuth = useCallback((authToken, userData) => {
+    localStorage.setItem(TOKEN_KEY, authToken);
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
+    setToken(authToken);
+    setUser(userData);
+  }, []);
 
-  const clearAuth = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("lastScanResult");
-    setToken(null);
+  const clearAuth = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    setToken("");
     setUser(null);
-  };
+  }, []);
 
-  const login = async (payload) => {
-    const { data } = await api.post("/auth/login", payload);
-    persistAuth(data.token, data.user);
-    return data;
-  };
-
-  const register = async (payload) => {
-    const { data } = await api.post("/auth/register", payload);
-    persistAuth(data.token, data.user);
-    return data;
-  };
-
-  const logout = () => {
-    clearAuth();
-  };
-
-  const refreshUser = async () => {
-    if (!localStorage.getItem("token")) {
-      setLoading(false);
+  const refreshMe = useCallback(async () => {
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+    if (!storedToken) {
+      setBootstrapping(false);
       return;
     }
 
     try {
-      const { data } = await api.get("/auth/me");
-      setUser(data.user);
-      localStorage.setItem("user", JSON.stringify(data.user));
-    } catch (error) {
+      const { data } = await api.get("/auth/me", {
+        headers: {
+          Authorization: `Bearer ${storedToken}`
+        }
+      });
+
+      if (data?.user) {
+        localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+        setToken(storedToken);
+        setUser(data.user);
+      }
+    } catch {
       clearAuth();
     } finally {
-      setLoading(false);
+      setBootstrapping(false);
     }
-  };
+  }, [clearAuth]);
 
   useEffect(() => {
-    refreshUser();
+    refreshMe();
+  }, [refreshMe]);
+
+  const login = useCallback((authToken, userData) => {
+    persistAuth(authToken, userData);
+  }, [persistAuth]);
+
+  const logout = useCallback(() => {
+    clearAuth();
+  }, [clearAuth]);
+
+  const updateUser = useCallback((userData) => {
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
+    setUser(userData);
   }, []);
 
-  const value = useMemo(
-    () => ({
-      user,
+  const value = useMemo(() => {
+    const isAuthenticated = Boolean(token && user);
+    const isAdmin = user?.role === "admin";
+
+    return {
       token,
-      loading,
+      user,
+      isAuthenticated,
+      isAdmin,
+      bootstrapping,
       login,
-      register,
       logout,
-      refreshUser,
-      isAuthenticated: !!user
-    }),
-    [user, token, loading]
-  );
+      updateUser,
+      refreshMe
+    };
+  }, [token, user, bootstrapping, login, logout, updateUser, refreshMe]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  return useContext(AuthContext);
 }
