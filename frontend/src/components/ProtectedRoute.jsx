@@ -1,22 +1,19 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import useAuth from "../hooks/useAuth";
 import LoadingSpinner from "./LoadingSpinner";
 
-export default function ProtectedRoute({ children, requiredRole = null }) {
-  const { user, loading } = useAuth();
+export default function ProtectedRoute({ children, adminOnly = false }) {
+  const { isAuthenticated, isAdmin, bootstrapping } = useAuth();
 
-  if (loading) {
+  if (bootstrapping) {
     return <LoadingSpinner fullScreen text="Checking session..." />;
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && user.role !== requiredRole) {
-    if (user.role === "admin") {
-      return <Navigate to="/admin/dashboard" replace />;
-    }
+  if (adminOnly && !isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
 
