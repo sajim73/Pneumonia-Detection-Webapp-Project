@@ -15,9 +15,9 @@ import HistoryPage from "./pages/HistoryPage";
 import ScanDetailPage from "./pages/ScanDetailPage";
 import ReportPreviewPage from "./pages/ReportPreviewPage";
 
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminScans from "./pages/admin/AdminScans";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminScansPage from "./pages/admin/AdminScansPage";
 
 export default function App() {
   return (
