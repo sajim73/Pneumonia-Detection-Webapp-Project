@@ -1,4 +1,11 @@
-import { createContext, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState
+} from "react";
 import api from "../api/axios";
 
 export const AuthContext = createContext(null);
@@ -97,4 +104,8 @@ export default function AuthProvider({ children }) {
   }, [token, user, bootstrapping, login, logout, updateUser, refreshMe]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
 }
