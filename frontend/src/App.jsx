@@ -1,120 +1,61 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import Navbar from "./components/Navbar";
+
 import ProtectedRoute from "./components/ProtectedRoute";
-import { useAuth } from "./context/AuthContext";
+
+import AppLayout from "./layouts/AppLayout";
+import AuthLayout from "./layouts/AuthLayout";
+import AdminLayout from "./layouts/AdminLayout";
 
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import Dashboard from "./pages/Dashboard";
+import DashboardPage from "./pages/DashboardPage";
 import UploadPage from "./pages/UploadPage";
 import ResultsPage from "./pages/ResultsPage";
 import HistoryPage from "./pages/HistoryPage";
 import ScanDetailPage from "./pages/ScanDetailPage";
-import ReportPage from "./pages/ReportPage";
+import ReportPreviewPage from "./pages/ReportPreviewPage";
+
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminScans from "./pages/admin/AdminScans";
 
-function HomeRedirect() {
-  const { user } = useAuth();
-
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.role === "admin") return <Navigate to="/admin/dashboard" replace />;
-  return <Navigate to="/dashboard" replace />;
-}
-
 export default function App() {
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<HomeRedirect />} />
+    <Routes>
+      <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+      </Route>
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
+      <Route
+        element={
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/upload" element={<UploadPage />} />
+        <Route path="/results" element={<ResultsPage />} />
+        <Route path="/history" element={<HistoryPage />} />
+        <Route path="/scans/:id" element={<ScanDetailPage />} />
+        <Route path="/reports/:id" element={<ReportPreviewPage />} />
+      </Route>
 
-        <Route
-          path="/upload"
-          element={
-            <ProtectedRoute>
-              <UploadPage />
-            </ProtectedRoute>
-          }
-        />
+      <Route
+        element={
+          <ProtectedRoute adminOnly>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/scans" element={<AdminScans />} />
+      </Route>
 
-        <Route
-          path="/results"
-          element={
-            <ProtectedRoute>
-              <ResultsPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/history"
-          element={
-            <ProtectedRoute>
-              <HistoryPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/scans/:id"
-          element={
-            <ProtectedRoute>
-              <ScanDetailPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/reports/:id"
-          element={
-            <ProtectedRoute>
-              <ReportPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/dashboard"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/users"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <AdminUsers />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/scans"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <AdminScans />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </div>
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }
