@@ -1,8 +1,8 @@
-from flask import Blueprint, jsonify, request, g
-
+from flask import Blueprint, request, jsonify
+from werkzeug.security import generate_password_hash, check_password_hash
 from extensions import db
 from models.user import User
-from utils.auth_helpers import create_access_token, login_required
+from utils.auth_helpers import create_access_token
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -11,44 +11,43 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 def register():
     data = request.get_json() or {}
 
-    name = (data.get("name") or "").strip()
+    name = (data.get("name") or data.get("username") or "").strip()
     email = (data.get("email") or "").strip().lower()
     password = data.get("password") or ""
-    requested_role = (data.get("role") or "patient").strip().lower()
-    admin_key = data.get("admin_key") or ""
+    role = (data.get("role") or "patient").strip().lower()
 
     if not name or not email or not password:
         return jsonify({"error": "Name, email, and password are required"}), 400
 
-    if len(password) < 6:
-        return jsonify({"error": "Password must be at least 6 characters"}), 400
+    if role not in ["patient", "admin"]:
+        return jsonify({"error": "Invalid role"}), 400
 
-    if User.query.filter_by(email=email).first():
-        return jsonify({"error": "Email is already registered"}), 409
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user:
+        return jsonify({"error": "Email already registered"}), 409
 
-    from flask import current_app
-
-    role = "patient"
-    if requested_role == "admin":
-        if admin_key != current_app.config["ADMIN_REGISTRATION_KEY"]:
-            return jsonify({"error": "Invalid admin registration key"}), 403
-        role = "admin"
-
-    user = User(name=name, email=email, role=role)
-    user.set_password(password)
+    user = User(
+        name=name,
+        email=email,
+        role=role,
+    )
+    user.password_hash = generate_password_hash(password)
 
     db.session.add(user)
     db.session.commit()
 
     token = create_access_token(user)
 
-    return jsonify(
-        {
-            "message": "Registration successful",
-            "token": token,
-            "user": user.to_dict(),
+    return jsonify({
+        "message": "User created successfully",
+        "token": token,
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role
         }
-    ), 201
+    }), 201
 
 
 @auth_bp.route("/login", methods=["POST"])
@@ -63,24 +62,18 @@ def login():
 
     user = User.query.filter_by(email=email).first()
 
-    if not user or not user.check_password(password):
-        return jsonify({"error": "Invalid email or password"}), 401
-
-    if not user.is_active:
-        return jsonify({"error": "Account is inactive"}), 403
+    if not user or not check_password_hash(user.password_hash, password):
+        return jsonify({"error": "Invalid credentials"}), 401
 
     token = create_access_token(user)
 
-    return jsonify(
-        {
-            "message": "Login successful",
-            "token": token,
-            "user": user.to_dict(),
+    return jsonify({
+        "message": "Login successful",
+        "token": token,
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role
         }
-    ), 200
-
-
-@auth_bp.route("/me", methods=["GET"])
-@login_required
-def me():
-    return jsonify({"user": g.current_user.to_dict()}), 200
+    }), 200
