@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, g
 
 from extensions import db
 from models.user import User
@@ -26,9 +26,9 @@ def register():
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "Email is already registered"}), 409
 
-    role = "patient"
     from flask import current_app
 
+    role = "patient"
     if requested_role == "admin":
         if admin_key != current_app.config["ADMIN_REGISTRATION_KEY"]:
             return jsonify({"error": "Invalid admin registration key"}), 403
@@ -83,5 +83,4 @@ def login():
 @auth_bp.route("/me", methods=["GET"])
 @login_required
 def me():
-    from flask import g
     return jsonify({"user": g.current_user.to_dict()}), 200
