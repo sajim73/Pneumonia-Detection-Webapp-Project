@@ -43,6 +43,7 @@ export default function LoginPage() {
   };
 
   return (
+    <div id = "holderDiv">
     <div className="card p-8">
       <h2 className="page-title">Login</h2>
       <p className="page-subtitle">Sign in to access the screening platform.</p>
@@ -53,7 +54,9 @@ export default function LoginPage() {
         </div>
       )}
 
+      <div id= "containerForLabels">
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <div class = "entryBoxes">
         <div>
           <label className="label">Email</label>
           <input
@@ -77,7 +80,7 @@ export default function LoginPage() {
             required
           />
         </div>
-
+        </div>
         <button type="submit" className="btn-primary w-full" disabled={loading}>
           {loading ? "Signing in..." : "Login"}
         </button>
@@ -86,6 +89,8 @@ export default function LoginPage() {
       <p className="mt-5 text-sm text-slate-600">
         Don&apos;t have an account? <Link to="/register" className="text-teal-700 font-semibold">Register</Link>
       </p>
+      </div>
+    </div>
     </div>
   );
 }

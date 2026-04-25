@@ -1,15 +1,15 @@
 :root {
-  --bg: #f8fafc;
-  --surface: #ffffff;
+  --bg: #355872;
+  --surface: #f7f8f0;
   --surface-soft: #f1f5f9;
   --border: #e2e8f0;
   --text: #0f172a;
   --muted: #64748b;
-  --primary: #0f766e;
-  --primary-dark: #115e59;
+  --primary: #355872;
+  --primary-dark: #355872;
   --secondary: #1e293b;
   --success-bg: #dcfce7;
-  --success-text: #166534;
+  --success-text: #223747;
   --warning-bg: #fef3c7;
   --warning-text: #b45309;
   --info-bg: #dbeafe;

@@ -3,11 +3,33 @@
   margin-inline: auto;
 }
 
+h2{
+  text-align: center;
+}
+
+#containerForLabels{
+  padding: 1rem 2rem;
+}
+
+#holderDiv{
+  display: flex;
+  justify-content: center;
+}
+.entryBoxes{
+  margin: 0.5rem 0rem;
+  display: grid;
+  grid-template-rows: 1fr;
+  gap: 1.5rem;
+}
 .card {
   background: var(--surface);
+  height: 400px;
+  width: 400px;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 4px;
   box-shadow: var(--shadow);
+  padding: 1rem;
+
 }
 
 .page-title {
@@ -18,9 +40,10 @@
 }
 
 .page-subtitle {
-  margin-top: 0.5rem;
+  margin-top: 0.7rem;
   color: var(--muted);
   max-width: 60ch;
+  text-align: center;
 }
 
 .label {
@@ -35,7 +58,8 @@
   width: 100%;
   border: 1px solid var(--border);
   background: #fff;
-  border-radius: 12px;
+  border-radius: 3px;
+  height:35px;
   padding: 0.85rem 1rem;
   font-size: 0.98rem;
   outline: none;
@@ -54,7 +78,6 @@
   justify-content: center;
   gap: 0.5rem;
   min-height: 42px;
-  padding: 0.75rem 1rem;
   border-radius: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -66,6 +89,7 @@
   border: 1px solid var(--primary);
   background: var(--primary);
   color: white;
+
 }
 
 .btn-primary:hover {
@@ -108,5 +132,12 @@
 }
 
 .w-full {
-  width: 100%;
+  margin: 1.5rem 5.5rem;
+  width: 40%;
+}
+
+.text-slate-600
+{
+  margin: 0rem;
+  text-align: center;
 }
