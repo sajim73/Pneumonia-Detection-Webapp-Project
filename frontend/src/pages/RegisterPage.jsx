@@ -58,7 +58,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="card p-8">
+     <div id = "holderDiv">
+    <div className="card p-9">
       <h2 className="page-title">Create Account</h2>
       <p className="page-subtitle">Register as a patient or admin user.</p>
 
@@ -67,20 +68,36 @@ export default function RegisterPage() {
           {error}
         </div>
       )}
-
+      <div id= "containerForLabels">
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <div class = "firstAndLastLblBxs">
         <div>
-          <label className="label">Full Name</label>
+          <label className="label">First Name</label>
           <input
             className="input"
             type="text"
-            name="name"
-            value={form.name}
+            name="firstName"
+            value={form.firstName}
             onChange={handleChange}
             required
           />
         </div>
 
+        <div>
+          <label className="label">Last Name</label>
+          <input
+            className="input"
+            type="text"
+            name="lastName"
+            value={form.lastName}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        </div>
+
+      <div class = "emailPassRoleLblBxs">
         <div>
           <label className="label">Email</label>
           <input
@@ -118,6 +135,7 @@ export default function RegisterPage() {
           </select>
         </div>
 
+
         {form.role === "admin" && (
           <div>
             <label className="label">Admin Registration Key</label>
@@ -130,8 +148,9 @@ export default function RegisterPage() {
               required
             />
           </div>
+         
         )}
-
+         </div>
         <button type="submit" className="btn-primary w-full" disabled={loading}>
           {loading ? "Creating account..." : "Register"}
         </button>
@@ -140,6 +159,8 @@ export default function RegisterPage() {
       <p className="mt-5 text-sm text-slate-600">
         Already have an account? <Link to="/login" className="text-teal-700 font-semibold">Login</Link>
       </p>
+      </div>
+    </div>
     </div>
   );
 }

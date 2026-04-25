@@ -21,15 +21,21 @@ h2{
   grid-template-rows: 1fr;
   gap: 1.5rem;
 }
-.card {
+.card{
   background: var(--surface);
-  height: 400px;
   width: 400px;
   border: 1px solid var(--border);
   border-radius: 4px;
   box-shadow: var(--shadow);
   padding: 1rem;
 
+}
+
+.p-8{
+  height: 400px;
+}
+.p-9{
+  height: 500px;
 }
 
 .page-title {
@@ -46,6 +52,19 @@ h2{
   text-align: center;
 }
 
+
+.firstAndLastLblBxs{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+.emailPassRoleLblBxs{
+  display: grid;
+  margin: 10px 0px;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
 .label {
   display: block;
   font-size: 0.92rem;
@@ -60,7 +79,6 @@ h2{
   background: #fff;
   border-radius: 3px;
   height:35px;
-  padding: 0.85rem 1rem;
   font-size: 0.98rem;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -138,6 +156,13 @@ h2{
 
 .text-slate-600
 {
+  margin: -1rem;
+  font-size: 14px;
+  text-align: center;
+}
+.text-slate-700
+{
   margin: 0rem;
+  font-size: 14px;
   text-align: center;
 }

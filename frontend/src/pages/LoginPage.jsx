@@ -86,7 +86,7 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p className="mt-5 text-sm text-slate-600">
+      <p className="mt-5 text-sm text-slate-700">
         Don&apos;t have an account? <Link to="/register" className="text-teal-700 font-semibold">Register</Link>
       </p>
       </div>
