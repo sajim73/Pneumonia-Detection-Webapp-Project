@@ -159,6 +159,10 @@ export default function RegisterPage() {
       <p className="mt-5 text-sm text-slate-600">
         Already have an account? <Link to="/login" className="text-teal-700 font-semibold">Login</Link>
       </p>
+
+      <p>
+      <Link to="/dashboard" className="tempLink">dashboard</Link>
+      </p>
       </div>
     </div>
     </div>

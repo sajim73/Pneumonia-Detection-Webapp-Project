@@ -44,13 +44,13 @@ export default function UploadPage() {
   return (
     <div className="container-page py-8">
       <div className="mb-8">
-        <h2 className="page-title">Upload Chest X-ray</h2>
-        <p className="page-subtitle">
-          Select one X-ray image to run pneumonia screening and Grad-CAM visualization.
-        </p>
+         <h2 className="page-title">Scanning Tool</h2>
+        <p className="page-title-subheading">Upload Chest X-ray</p>
+        
       </div>
 
-      <div className="card p-6">
+    <div id = "outerdiv"> 
+      <div className="card p-10">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="label">X-ray Image</label>
@@ -61,6 +61,8 @@ export default function UploadPage() {
               onChange={handleFileChange}
             />
           </div>
+
+          
 
           {file && (
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -89,9 +91,12 @@ export default function UploadPage() {
               </div>
             </div>
           )}
+           <p className="page-subtitle">
+          Select one X-ray image to run pneumonia screening and Grad-CAM visualization.
+          </p>
 
-          <button type="submit" className="btn-primary" disabled={uploading}>
-            {uploading ? "Processing..." : "Run Scan"}
+          <button type="submit" className="btn-primary-scan" disabled={uploading}>
+            {uploading ? "Processing..." : "Run Scan Tool"}
           </button>
         </form>
 
@@ -100,7 +105,10 @@ export default function UploadPage() {
             Upload successful. Scan #{result.scan_id} has been saved.
           </div>
         )}
+
       </div>
+      
+        </div>
     </div>
   );
 }

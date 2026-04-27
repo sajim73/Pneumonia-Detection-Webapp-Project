@@ -39,23 +39,60 @@ export default function Dashboard() {
   return (
     <div className="container-page py-8">
       <div className="mb-8">
-        <h2 className="page-title">Welcome, {user?.name}</h2>
-        <p className="page-subtitle">
-          Upload a chest X-ray image, review the AI result, save the scan, and download a report.
-        </p>
+        <div className = "identificationHeader">
+            <img src = "" alt = "Profile Photo"></img>
+          <div id = "profileImg">
+
+          <Link to="/upload" className="btn-primary">
+              Upload Scan
+            </Link>
+
+          </div>
+          
+          <h2 className="page-title">Hello,</h2>
+          <p className="page-subtitle">
+            {user?.name}
+          </p>
+
+            <div class = "entryDivs">
+              <div className = "genderInput">
+                <label for ="genderEntry"> Gender</label>
+                  <input type = "text" id= "genderEntry" name= "genderEntry" placeholder = ""></input> 
+          
+              </div>
+              
+              <div className = "ageInput">
+                <label for ="ageEntry"> Age</label>
+                <input type = "text" id= "ageEntry" name= "ageEntry" placeholder = ""></input> 
+              </div>
+
+              <div className = "weightInput">
+                <label for ="weightEntry"> Weight</label>
+                <input type = "text" id= "weightEntry" name= "weightEntry" placeholder = ""></input>  
+              </div>
+
+              <div className = "heightInput">
+                <label for ="heightEntry"> Height</label>
+                <input type = "text" id= "heightEntry" name= "heightEntry" placeholder = ""></input>  
+              </div>
+
+            </div>
+
+        </div>
       </div>
+      
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="card p-5">
-          <p className="text-sm text-slate-500">Saved scans</p>
+          <p className="text-sm text-slate-500">Total scans</p>
           <p className="mt-2 text-3xl font-bold text-slate-900">{stats.total}</p>
         </div>
         <div className="card p-5">
-          <p className="text-sm text-slate-500">Pneumonia results</p>
+          <p className="text-sm text-slate-500">Last Scan</p>
           <p className="mt-2 text-3xl font-bold text-red-600">{stats.pneumonia}</p>
         </div>
         <div className="card p-5">
-          <p className="text-sm text-slate-500">Normal results</p>
+          <p className="text-sm text-slate-500"> Latest Results</p>
           <p className="mt-2 text-3xl font-bold text-emerald-600">{stats.normal}</p>
         </div>
       </div>
@@ -64,9 +101,7 @@ export default function Dashboard() {
         <div className="card p-6 lg:col-span-2">
           <h3 className="text-xl font-semibold text-slate-900">Quick Actions</h3>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link to="/upload" className="btn-primary">
-              Upload New Scan
-            </Link>
+            
             <Link to="/history" className="btn-secondary">
               View Scan History
             </Link>
