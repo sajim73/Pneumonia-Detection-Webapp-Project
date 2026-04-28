@@ -1,6 +1,6 @@
 .container-page {
-  width: min(var(--container), calc(100% - 2rem));
-  margin-inline: auto;
+  width: 100%;
+  margin-inline: 0 1rem;
 }
 
 h2{
@@ -11,24 +11,149 @@ h2{
   padding: 1rem 2rem;
 }
 
+#profilePhotoFile{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#Profile-Photo
+{
+  display: flex;
+  margin: 0px 0px 0px 25px;
+  width: 80px;
+  height: 80px;
+  background-color: blue;
+  border-radius: 50px;
+  
+}
+.py-8
+{
+  display: grid;
+  grid-template-columns: 1fr;
+  width: 99%;
+  min-width:fit-content;
+  min-height: 98vh;
+  margin: 7px 2px;
+  background: white;
+  border-radius: 0px 4px 4px 0px;
+
+}
+
+.innerGrid{
+  margin: 20px;
+
+}
+/*Used for login and create account page*/
 #holderDiv{
   display: flex;
   justify-content: center;
 }
-.entryBoxes{
-  margin: 0.5rem 0rem;
-  display: grid;
-  grid-template-rows: 1fr;
-  gap: 1.5rem;
+
+
+
+.mt-2{
+  display: flex;
+  justify-content: end;
+  align-items: baseline;
 }
-.card{
-  background: var(--surface);
+
+
+.mb-8{
+  margin: 10px;
+  
+}
+.p-5{
   width: 400px;
+  height: 20vh;
+  margin: 10px;
+  
+}
+
+.latestResults{
+  width: 100%;
+  min-width: fit-content;
+  height: 40vh;
+  flex: 1;
+  margin-left: 2rem;
+}
+
+.recentActivityCard{
+  width: 98%;
+  height: 18vh;
+
+}
+
+
+
+.identifier-card{
+  display: grid;
+  grid-template-columns: 0.3fr 1.2fr;
+  gap: 10px;
+  background: var(--surface);
+  width: auto;
+  height: 25vh;
   border: 1px solid var(--border);
   border-radius: 4px;
   box-shadow: var(--shadow);
   padding: 1rem;
+  margin: 0.4rem 0.4rem;
+}
 
+.identificationHeader{
+  background: white;
+  border-radius: 10px;
+}
+
+#genderEntry, #ageEntry, #weightEntry, #heightEntry{
+width: 50%;
+margin: 0px 0px;
+}
+
+.genderInput, .ageInput, .weightInput, .heightInput{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+}
+.entryDivs{
+  margin: 1.5rem -2.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 0px;
+}
+.card{
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px ;
+  box-shadow: var(--shadow);
+  padding: 0rem 2rem;
+  margin: 0.3rem 0;
+
+}
+.grid-cols-3{
+  width: 100%;
+}
+
+.demographicEntries{
+  display: flex;
+  flex-direction: column;
+  
+}
+.greetingAndEntries{
+  display: flex;
+  flex-direction: column;
+  align-items: start; 
+  margin: -30px 0px;
+}
+
+
+.rows{
+  display: flex;
+  flex-direction: row;
+  margin: 10px 10px;
 }
 
 .p-8{
@@ -40,17 +165,8 @@ h2{
 
 .p-10{
   height: 100vh;
-  width: 100vh;
+  width: 100%;
 }
-#outerdiv{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-}
-
-
-
 
 
 .page-title {
@@ -80,6 +196,11 @@ h2{
   gap: 10px;
 }
 
+.outerDiv{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .label {
   display: block;
   font-size: 0.92rem;
@@ -87,10 +208,7 @@ h2{
   color: var(--text);
   margin-bottom: 0.5rem;
 }
-.identificationHeader{
-  background: white;
-  border-radius: 10px;
-}
+
 .input {
   width: 100%;
   border: 1px solid var(--border);
@@ -124,7 +242,7 @@ h2{
 .btn-primary-scan{
   display: flex;
   align-items: center;
-  margin: 0px 280px;
+  margin: 0 auto;
   justify-content: center;
   padding: 8px 15px;
   gap: 0.5rem;
@@ -146,6 +264,23 @@ h2{
 .btn-primary:hover,.btn-primary-scan:hover {
   background: var(--primary-dark);
   border-color: var(--primary-dark);
+}
+.upload-scan-container{
+  display: flex;
+  justify-content:end;
+  align-items: end;
+  min-width: 680px;
+  max-width: 680px;
+}
+.upload-scan-btn{
+  background-color: #d6d7d2;
+  border-radius: 20px;
+  width: 23%;
+  padding: 5px 10px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.2s ease;
 }
 
 .btn-secondary {
