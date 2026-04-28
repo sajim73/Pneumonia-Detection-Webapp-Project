@@ -8,7 +8,8 @@ export default function RegisterPage() {
   const { login } = useAuth();
 
   const [form, setForm] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     role: "patient",
@@ -32,15 +33,13 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      const payload =
-        form.role === "admin"
-          ? form
-          : {
-              name: form.name,
-              email: form.email,
-              password: form.password,
-              role: form.role
-            };
+      const payload = {
+        name: `${form.firstName} ${form.lastName}`.trim(),
+        email: form.email,
+        password: form.password,
+        role: form.role,
+        ...(form.role === "admin" && { admin_key: form.admin_key })
+      };
 
       const { data } = await api.post("/auth/register", payload);
       login(data.token, data.user);
@@ -58,7 +57,7 @@ export default function RegisterPage() {
   };
 
   return (
-     <div id = "holderDiv">
+     <div id="holderDiv">
     <div className="card p-9">
       <h2 className="page-title">Create Account</h2>
       <p className="page-subtitle">Register as a patient or admin user.</p>
@@ -68,9 +67,9 @@ export default function RegisterPage() {
           {error}
         </div>
       )}
-      <div id= "containerForLabels">
+      <div id="containerForLabels">
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        <div class = "firstAndLastLblBxs">
+        <div className="firstAndLastLblBxs">
         <div>
           <label className="label">First Name</label>
           <input
@@ -94,10 +93,9 @@ export default function RegisterPage() {
             required
           />
         </div>
-
         </div>
 
-      <div class = "emailPassRoleLblBxs">
+      <div className="emailPassRoleLblBxs">
         <div>
           <label className="label">Email</label>
           <input
@@ -135,7 +133,6 @@ export default function RegisterPage() {
           </select>
         </div>
 
-
         {form.role === "admin" && (
           <div>
             <label className="label">Admin Registration Key</label>
@@ -148,9 +145,8 @@ export default function RegisterPage() {
               required
             />
           </div>
-         
         )}
-         </div>
+        </div>
         <button type="submit" className="btn-primary w-full" disabled={loading}>
           {loading ? "Creating account..." : "Register"}
         </button>
