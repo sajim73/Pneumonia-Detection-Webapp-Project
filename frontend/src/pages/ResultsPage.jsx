@@ -1,20 +1,22 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-
-/** Rewrites the origin of any absolute URL to match VITE_API_BASE_URL,
- *  so Flask-generated localhost URLs work in Codespaces / production. */
-function toAbsoluteUrl(url) {
+/**
+ * Converts any absolute backend URL (http://localhost:5000/uploads/...
+ * or https://port-5000.app.github.dev/uploads/...) into a same-origin
+ * path (e.g. /uploads/...) so the browser fetches it through Vite's
+ * proxy instead of making a cross-origin request to the backend.
+ *
+ * Same-origin = no CORS preflight = image always loads.
+ */
+function toProxiedPath(url) {
   if (!url) return "";
   try {
-    const parsed = new URL(url);
-    const base   = new URL(BASE_URL);
-    parsed.protocol = base.protocol;
-    parsed.host     = base.host;
-    return parsed.toString();
+    const { pathname, search } = new URL(url);
+    return pathname + search;   // e.g.  /uploads/abc123_scan.jpg
   } catch {
-    return `${BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+    // already a relative path
+    return url;
   }
 }
 
@@ -102,7 +104,7 @@ export default function ResultsPage() {
     return (
       <div style={{ minHeight: "100vh", background: "#f8fafc", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center", padding: 40, maxWidth: 340 }}>
-          <div style={{ width: 72, height: 72, borderRadius: 20, background: "rgba(99,102,241,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, margin: "0 auto 20px" }}>🩻</div>
+          <div style={{ width: 72, height: 72, borderRadius: 20, background: "rgba(99,102,241,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, margin: "0 auto 20px" }}>🫁</div>
           <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1e293b", margin: "0 0 8px" }}>No result available</h2>
           <p style={{ fontSize: 13, color: "#94a3b8", margin: "0 0 24px" }}>Please upload a chest X-ray to get started.</p>
           <button onClick={() => navigate("/upload")} style={{ padding: "10px 28px", borderRadius: 12, background: "#0f172a", color: "#fff", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer" }}>Go to Upload</button>
@@ -111,17 +113,18 @@ export default function ResultsPage() {
     );
   }
 
-  const prediction  = result.prediction;
-  const files       = result.files;
-  const scanId      = result.scan_id || result.scan?.id;
-  const isPneumonia = prediction.predicted_label === "Pneumonia";
+  const prediction   = result.prediction;
+  const files        = result.files;
+  const scanId       = result.scan_id || result.scan?.id;
+  const isPneumonia  = prediction.predicted_label === "Pneumonia";
   const confidencePct = (prediction.confidence * 100).toFixed(1);
-  const accent      = isPneumonia ? "#ef4444" : "#22c55e";
-  const accentMuted  = isPneumonia ? "rgba(239,68,68,0.08)" : "rgba(34,197,94,0.08)";
-  const accentBorder = isPneumonia ? "rgba(239,68,68,0.18)" : "rgba(34,197,94,0.18)";
+  const accent       = isPneumonia ? "#ef4444" : "#22c55e";
+  const accentMuted  = isPneumonia ? "rgba(239,68,68,0.08)"  : "rgba(34,197,94,0.08)";
+  const accentBorder = isPneumonia ? "rgba(239,68,68,0.18)"  : "rgba(34,197,94,0.18)";
 
-  const imageUrl   = toAbsoluteUrl(files?.image_url);
-  const overlayUrl = toAbsoluteUrl(files?.overlay_url);
+  // Use the proxied path — Vite forwards /uploads/* and /heatmaps/* to Flask.
+  const imageUrl   = toProxiedPath(files?.image_url);
+  const overlayUrl = toProxiedPath(files?.overlay_url);
 
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc" }}>
@@ -144,7 +147,6 @@ export default function ResultsPage() {
             <p style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>Classification, confidence, and Grad-CAM heatmap.</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {/* diagnosis badge */}
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 6,
               padding: "6px 14px", borderRadius: 99, fontSize: 12, fontWeight: 700,
@@ -194,9 +196,9 @@ export default function ResultsPage() {
 
           {/* Stat 2×2 */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <StatCell label="Diagnosis"      value={prediction.predicted_label}                                              valueColor={accent} />
-            <StatCell label="Confidence"     value={`${confidencePct}%`}                                                     valueColor={accent} />
-            <StatCell label="Normal prob."   value={`${(prediction.normal_probability    * 100).toFixed(1)}%`} valueColor="#16a34a" />
+            <StatCell label="Diagnosis"       value={prediction.predicted_label}                                               valueColor={accent} />
+            <StatCell label="Confidence"      value={`${confidencePct}%`}                                                      valueColor={accent} />
+            <StatCell label="Normal prob."    value={`${(prediction.normal_probability    * 100).toFixed(1)}%`} valueColor="#16a34a" />
             <StatCell label="Pneumonia prob." value={`${(prediction.pneumonia_probability * 100).toFixed(1)}%`} valueColor="#dc2626" />
           </div>
 
@@ -211,8 +213,8 @@ export default function ResultsPage() {
           {/* Actions */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {[
-              { to: "/upload",      icon: "↑", label: "New Scan" },
-              { to: "/history",     icon: "🕐", label: "History" },
+              { to: "/upload",  icon: "↑",  label: "New Scan" },
+              { to: "/history", icon: "🕐", label: "History"  },
             ].map(({ to, icon, label }) => (
               <Link key={to} to={to} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 0", borderRadius: 12, border: "1px solid #e2e8f0", background: "#fff", color: "#475569", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
                 <span>{icon}</span> {label}
@@ -233,7 +235,7 @@ export default function ResultsPage() {
           {/* tab bar */}
           <div style={{ display: "flex", borderBottom: "1px solid #f1f5f9", background: "#f8fafc" }}>
             <Tab active={activeTab === "overlay"}  onClick={() => setActiveTab("overlay")}  icon="🔥" label="Grad-CAM"     accent={accent} />
-            <Tab active={activeTab === "original"} onClick={() => setActiveTab("original")} icon="🩻" label="Original"     accent={accent} />
+            <Tab active={activeTab === "original"} onClick={() => setActiveTab("original")} icon="🫁" label="Original"     accent={accent} />
             <Tab active={activeTab === "side"}     onClick={() => setActiveTab("side")}     icon="⚖️" label="Side by Side" accent={accent} />
           </div>
 

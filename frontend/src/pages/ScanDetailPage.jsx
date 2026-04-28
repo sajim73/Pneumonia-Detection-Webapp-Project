@@ -3,24 +3,21 @@ import { Link, useParams } from "react-router-dom";
 import api from "../api/axios";
 import LoadingSpinner from "../components/LoadingSpinner";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-
 /**
- * Flask url_for(_external=True) in Codespaces returns http://localhost:5000/...
- * which the browser cannot reach. This rewrites the origin to match the
- * configured VITE_API_BASE_URL so images always load correctly.
+ * Converts any absolute backend URL into a same-origin relative path
+ * so the browser fetches it through Vite's /uploads and /heatmaps proxy
+ * rules — eliminating the cross-origin CORS issue entirely.
+ *
+ * e.g. http://localhost:5000/uploads/abc.jpg  →  /uploads/abc.jpg
+ *      https://port-5000.github.dev/heatmaps/xyz.png  →  /heatmaps/xyz.png
  */
-function toAbsoluteUrl(url) {
+function toProxiedPath(url) {
   if (!url) return "";
   try {
-    const parsed = new URL(url);
-    const base   = new URL(BASE_URL);
-    parsed.protocol = base.protocol;
-    parsed.host     = base.host;
-    return parsed.toString();
+    const { pathname, search } = new URL(url);
+    return pathname + search;
   } catch {
-    // url was already relative — just prepend base
-    return `${BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+    return url; // already relative
   }
 }
 
@@ -114,14 +111,15 @@ export default function ScanDetailPage() {
 
   if (!scan) return null;
 
-  const isPneumonia = scan.predicted_label === "Pneumonia";
-  const accent      = isPneumonia ? "#ef4444" : "#22c55e";
-  const accentLight  = isPneumonia ? "rgba(239,68,68,0.07)" : "rgba(34,197,94,0.07)";
-  const accentBorder = isPneumonia ? "rgba(239,68,68,0.2)" : "rgba(34,197,94,0.2)";
+  const isPneumonia  = scan.predicted_label === "Pneumonia";
+  const accent       = isPneumonia ? "#ef4444" : "#22c55e";
+  const accentLight  = isPneumonia ? "rgba(239,68,68,0.07)"  : "rgba(34,197,94,0.07)";
+  const accentBorder = isPneumonia ? "rgba(239,68,68,0.2)"   : "rgba(34,197,94,0.2)";
   const confidencePct = (scan.confidence * 100).toFixed(2);
 
-  const imageUrl   = toAbsoluteUrl(scan.image_url);
-  const overlayUrl = toAbsoluteUrl(scan.overlay_url);
+  // Proxy through Vite — same-origin, no CORS
+  const imageUrl   = toProxiedPath(scan.image_url);
+  const overlayUrl = toProxiedPath(scan.overlay_url);
 
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc" }}>
@@ -168,10 +166,10 @@ export default function ScanDetailPage() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <StatCard label="Confidence"      value={`${confidencePct}%`}                                               valueColor={accent} />
-            <StatCard label="Prediction"      value={scan.predicted_label}                                              valueColor={accent} />
-            <StatCard label="Normal Prob."    value={`${((scan.normal_probability    || 0) * 100).toFixed(2)}%`}  valueColor="#16a34a" />
-            <StatCard label="Pneumonia Prob." value={`${((scan.pneumonia_probability || 0) * 100).toFixed(2)}%`}  valueColor="#dc2626" />
+            <StatCard label="Confidence"      value={`${confidencePct}%`}                                                valueColor={accent} />
+            <StatCard label="Prediction"      value={scan.predicted_label}                                               valueColor={accent} />
+            <StatCard label="Normal Prob."    value={`${((scan.normal_probability    || 0) * 100).toFixed(2)}%`} valueColor="#16a34a" />
+            <StatCard label="Pneumonia Prob." value={`${((scan.pneumonia_probability || 0) * 100).toFixed(2)}%`} valueColor="#dc2626" />
           </div>
 
           <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #f1f5f9", boxShadow: "0 1px 6px rgba(0,0,0,0.04)", padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
