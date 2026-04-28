@@ -175,3 +175,34 @@ def get_scan_detail(scan_id):
         return jsonify({"error": "You do not have access to this scan"}), 403
 
     return jsonify({"scan": scan_to_response(scan)}), 200
+
+
+@scan_bp.route("/<int:scan_id>", methods=["DELETE"])
+@login_required
+def delete_scan(scan_id):
+    scan = Scan.query.get(scan_id)
+
+    if not scan:
+        return jsonify({"error": "Scan not found"}), 404
+
+    if not can_access_scan(g.current_user, scan):
+        return jsonify({"error": "You do not have access to this scan"}), 403
+
+    # Remove stored files from disk (best-effort, don't fail if missing)
+    for folder_key, filename in [
+        ("UPLOAD_FOLDER", scan.stored_image_filename),
+        ("HEATMAP_FOLDER", scan.heatmap_filename),
+        ("HEATMAP_FOLDER", scan.overlay_filename),
+    ]:
+        if filename:
+            path = os.path.join(current_app.config.get(folder_key, ""), filename)
+            try:
+                if os.path.exists(path):
+                    os.remove(path)
+            except Exception:
+                pass
+
+    db.session.delete(scan)
+    db.session.commit()
+
+    return jsonify({"message": "Scan deleted successfully"}), 200
