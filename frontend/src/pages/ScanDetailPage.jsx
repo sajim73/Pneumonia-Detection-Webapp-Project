@@ -3,6 +3,16 @@ import { Link, useParams } from "react-router-dom";
 import api from "../api/axios";
 import LoadingSpinner from "../components/LoadingSpinner";
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+/** Ensures a URL is absolute. If it already starts with http it is returned as-is;
+ *  otherwise the backend base URL is prepended. */
+function toAbsoluteUrl(url) {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `${BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+}
+
 function StatCard({ label, value, valueColor, sub }) {
   return (
     <div style={{
@@ -62,6 +72,9 @@ export default function ScanDetailPage() {
   const accentLight = isPneumonia ? "rgba(239,68,68,0.07)" : "rgba(34,197,94,0.07)";
   const accentBorder = isPneumonia ? "rgba(239,68,68,0.2)" : "rgba(34,197,94,0.2)";
   const confidencePct = (scan.confidence * 100).toFixed(2);
+
+  const imageUrl   = toAbsoluteUrl(scan.image_url);
+  const overlayUrl = toAbsoluteUrl(scan.overlay_url);
 
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc" }}>
@@ -148,10 +161,15 @@ export default function ScanDetailPage() {
             </div>
             <div style={{ padding: 16, background: "#0f172a" }}>
               <img
-                src={scan.image_url}
+                src={imageUrl}
                 alt="Original X-ray"
                 style={{ width: "100%", maxHeight: 300, objectFit: "contain", display: "block", borderRadius: 8 }}
+                onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
               />
+              <div style={{ display: "none", height: 200, alignItems: "center", justifyContent: "center", color: "#64748b", fontSize: 13, flexDirection: "column", gap: 8 }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                Image not available
+              </div>
             </div>
           </div>
 
@@ -169,10 +187,15 @@ export default function ScanDetailPage() {
             </div>
             <div style={{ padding: 16, background: "#0f172a" }}>
               <img
-                src={scan.overlay_url}
+                src={overlayUrl}
                 alt="Grad-CAM heatmap"
                 style={{ width: "100%", maxHeight: 300, objectFit: "contain", display: "block", borderRadius: 8 }}
+                onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
               />
+              <div style={{ display: "none", height: 200, alignItems: "center", justifyContent: "center", color: "#64748b", fontSize: 13, flexDirection: "column", gap: 8 }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+                Heatmap not available
+              </div>
             </div>
           </div>
         </div>
