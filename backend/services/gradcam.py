@@ -10,64 +10,49 @@ from PIL import Image
 from services.inference import get_model, prepare_image
 
 
-def _resolve_target_layer(model, requested_layer=None):
-    # 1. Try the explicitly configured layer name first
-    if requested_layer:
-        try:
-            model.get_layer(requested_layer)
-            return requested_layer
-        except Exception:
-            pass
-
-    # 2. Fallback: scan reversed layers by class name (works on Sequential models
-    #    where output_shape is unavailable before a real forward pass)
-    conv_classes = ("Conv2D", "Conv2d", "Convolution2D")
+def _get_last_conv_layer(model):
+    """Return the last Conv2D layer, works for Sequential and Functional models."""
     for layer in reversed(model.layers):
-        if layer.__class__.__name__ in conv_classes:
-            return layer.name
-
-    # 3. Last resort: try output_shape 4D check
-    for layer in reversed(model.layers):
-        try:
-            output_shape = layer.output_shape
-            if isinstance(output_shape, list):
-                output_shape = output_shape[0]
-            if len(output_shape) == 4:
-                return layer.name
-        except Exception:
-            continue
-
-    raise ValueError("No Conv2D layer found for Grad-CAM.")
+        if isinstance(layer, tf.keras.layers.Conv2D):
+            return layer
+    raise ValueError("No Conv2D layer found in model for Grad-CAM.")
 
 
-def _make_heatmap(batch, model, target_layer_name, class_index=None):
-    grad_model = tf.keras.models.Model(
-        inputs=model.inputs,
-        outputs=[model.get_layer(target_layer_name).output, model.output],
-    )
-
+def _make_heatmap(batch, model, target_layer, class_index=None):
+    """
+    Compute Grad-CAM heatmap by watching the target conv layer output directly.
+    This works for both Sequential and Functional models because it does NOT
+    require building a sub-Model (which fails on unbuilt Sequential models).
+    """
     with tf.GradientTape() as tape:
-        conv_outputs, predictions = grad_model(batch)
+        x = batch
+        conv_outputs = None
+
+        for layer in model.layers:
+            x = layer(x)
+            if layer.name == target_layer.name:
+                conv_outputs = x
+                tape.watch(conv_outputs)
+
+        predictions = x  # final output after all layers
 
         if predictions.shape[-1] == 1:
             class_channel = predictions[:, 0]
         else:
             if class_index is None:
-                class_index = tf.argmax(predictions[0])
+                class_index = int(tf.argmax(predictions[0]))
             class_channel = predictions[:, class_index]
 
     grads = tape.gradient(class_channel, conv_outputs)
     pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
-    conv_outputs = conv_outputs[0]
 
-    heatmap = conv_outputs @ pooled_grads[..., tf.newaxis]
+    heatmap = conv_outputs[0] @ pooled_grads[..., tf.newaxis]
     heatmap = tf.squeeze(heatmap)
-
     heatmap = tf.maximum(heatmap, 0)
-    max_val = tf.reduce_max(heatmap)
 
+    max_val = tf.reduce_max(heatmap)
     if float(max_val) > 0:
-        heatmap /= max_val
+        heatmap = heatmap / max_val
 
     return heatmap.numpy()
 
@@ -75,8 +60,8 @@ def _make_heatmap(batch, model, target_layer_name, class_index=None):
 def generate_gradcam_assets(image_path: str, class_index: int = None):
     model = get_model()
     batch, preprocess_mode, _ = prepare_image(image_path)
-    requested_layer = current_app.config.get("GRADCAM_LAYER_NAME", "conv2d_8")
-    target_layer = _resolve_target_layer(model, requested_layer)
+
+    target_layer = _get_last_conv_layer(model)
 
     heatmap = _make_heatmap(batch, model, target_layer, class_index=class_index)
 
@@ -108,6 +93,6 @@ def generate_gradcam_assets(image_path: str, class_index: int = None):
         "overlay_filename": overlay_filename,
         "heatmap_path": heatmap_path,
         "overlay_path": overlay_path,
-        "gradcam_layer": target_layer,
+        "gradcam_layer": target_layer.name,
         "preprocess_mode": preprocess_mode,
     }
