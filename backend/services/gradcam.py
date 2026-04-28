@@ -11,6 +11,7 @@ from services.inference import get_model, prepare_image
 
 
 def _resolve_target_layer(model, requested_layer=None):
+    # 1. Try the explicitly configured layer name first
     if requested_layer:
         try:
             model.get_layer(requested_layer)
@@ -18,6 +19,14 @@ def _resolve_target_layer(model, requested_layer=None):
         except Exception:
             pass
 
+    # 2. Fallback: scan reversed layers by class name (works on Sequential models
+    #    where output_shape is unavailable before a real forward pass)
+    conv_classes = ("Conv2D", "Conv2d", "Convolution2D")
+    for layer in reversed(model.layers):
+        if layer.__class__.__name__ in conv_classes:
+            return layer.name
+
+    # 3. Last resort: try output_shape 4D check
     for layer in reversed(model.layers):
         try:
             output_shape = layer.output_shape
@@ -28,7 +37,7 @@ def _resolve_target_layer(model, requested_layer=None):
         except Exception:
             continue
 
-    raise ValueError("No 4D convolution-like layer found for Grad-CAM.")
+    raise ValueError("No Conv2D layer found for Grad-CAM.")
 
 
 def _make_heatmap(batch, model, target_layer_name, class_index=None):
@@ -66,7 +75,7 @@ def _make_heatmap(batch, model, target_layer_name, class_index=None):
 def generate_gradcam_assets(image_path: str, class_index: int = None):
     model = get_model()
     batch, preprocess_mode, _ = prepare_image(image_path)
-    requested_layer = current_app.config.get("GRADCAM_LAYER_NAME", "relu")
+    requested_layer = current_app.config.get("GRADCAM_LAYER_NAME", "conv2d_8")
     target_layer = _resolve_target_layer(model, requested_layer)
 
     heatmap = _make_heatmap(batch, model, target_layer, class_index=class_index)
