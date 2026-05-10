@@ -1,25 +1,20 @@
-# AI-Enhanced Pneumonia Detection Platform
+﻿# AI-Enhanced Pneumonia Detection Platform
 
-A full-stack web application for AI-powered pneumonia screening from chest X-rays, with Grad-CAM heatmap visualization, PDF report generation, JWT authentication, and role-based access control.
+This repository contains a simple full-stack scaffold for an AI-enhanced pneumonia detection web app.
 
 ## Structure
+- frontend/ -> React + Vite + Tailwind app
+- backend/ -> Flask API + model inference + Grad-CAM + PDF report
+- docs/ -> project notes, API notes, screenshots
 
-- `frontend/` — React + Vite app
-- `backend/` — Flask API, model inference, Grad-CAM, PDF report generation
-- `docs/` — project notes, API notes, screenshots
-
----
-
-## Quick Start — Local
-
+## Quick Start
 ### Backend
 ```bash
 cd backend
 python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # macOS / Linux
+venv\Scripts\activate
 pip install -r requirements.txt
-flask run --host=0.0.0.0 --port=5000
+python app.py
 ```
 
 ### Frontend
@@ -29,9 +24,15 @@ npm install
 npm run dev
 ```
 
+## Notes
+- Put your trained model in `backend/models_saved/pneumoniaModel.h5`
+- Uploaded X-rays go into `backend/uploads/`
+- Grad-CAM outputs go into `backend/heatmaps/`
+- SQLite DB will be created automatically
+
 ---
 
-## Quick Start — GitHub Codespaces
+## GitHub Codespaces Quick Start
 
 Open two terminals inside the Codespace and run each block in its own terminal.
 
@@ -57,15 +58,5 @@ After both servers are running, open the **PORTS** tab in Codespaces:
 | 5000 | Flask backend | **Public** |
 | 5173 | Vite frontend | Private (open in browser) |
 
-Set port **5000** to **Public** by right-clicking it → Port Visibility → Public.  
+Right-click port **5000** → Port Visibility → **Public**.  
 Then click the globe icon on port **5173** to open the app in your browser.
-
----
-
-## Notes
-
-- Put your trained model in `backend/models_saved/pneumoniaModel.h5`
-- Uploaded X-rays are saved to `backend/uploads/`
-- Grad-CAM outputs are saved to `backend/heatmaps/`
-- SQLite database is created automatically on first run
-- Copy `backend/.env.example` to `backend/.env` and fill in your values before starting
